@@ -11,10 +11,10 @@ import {
 } from "firebase/firestore";
 
 function Data() {
-  // student usestate
+  // studentList state
   const [studentList, setStudentList] = useState([]);
 
-  // READ DATA
+  // READ DATA FUNCTION
   useEffect(() => {
     // fetch data
     const database = getFirestore(firebaseApp);
@@ -40,7 +40,7 @@ function Data() {
     }
   }, []);
 
-  // DELET DATA
+  // DELET DATA FUNCTION
   const deleteStudets = (student_id, lastname, firstname) => {
     // fetch data
     const database = getFirestore(firebaseApp);

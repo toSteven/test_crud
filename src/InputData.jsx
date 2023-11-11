@@ -1,13 +1,24 @@
-import { addDoc, collection } from "firebase/firestore";
 import { useState } from "react";
 
+import firebaseApp from "./FireBaseConfig";
+import {
+  Firestore,
+  getFirestore,
+  collection,
+  onSnapshot,
+  deleteDoc,
+  doc,
+} from "firebase/firestore";
+
 function InputData() {
+  // student state
   const [student, setStudent] = useState({
     lastname: "",
     firstname: "",
     yearlevel: "",
   });
 
+  //   CREATE DATA FUNCTION
   const addStudent = () => {
     // fetch data
     const database = getFirestore(firebaseApp);
@@ -19,9 +30,10 @@ function InputData() {
     ) {
       alert("Missing fields!");
     } else {
-      setStudentList((studentList) => [...studentList, student]);
+      setStudentList((newStudentList) => [...newStudentList, student]);
       addDoc(collection(database, "data"), student);
 
+      // Reset the form fields
       setStudent({
         lastname: "",
         firstname: "",
@@ -57,7 +69,7 @@ function InputData() {
       <input
         id="firstname"
         type="text"
-        placeholder="last name"
+        placeholder="first name"
         className="form-control"
         value={student.firstname}
         onChange={(e) =>
@@ -75,7 +87,7 @@ function InputData() {
       <input
         id="yearlevel"
         type="number"
-        placeholder="last name"
+        placeholder="year level"
         className="form-control"
         value={student.yearlevel}
         onChange={(e) =>
@@ -86,7 +98,14 @@ function InputData() {
         }
       />
 
-      <button className="btn btn-dark mt-5">+Add</button>
+      <button
+        className="btn btn-dark mt-5"
+        onClick={() => {
+          addStudent();
+        }}
+      >
+        +Add
+      </button>
     </section>
   );
 }
