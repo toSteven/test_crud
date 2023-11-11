@@ -6,6 +6,8 @@ import {
   getFirestore,
   collection,
   onSnapshot,
+  deleteDoc,
+  doc,
 } from "firebase/firestore";
 
 function Data() {
@@ -38,6 +40,20 @@ function Data() {
     }
   }, []);
 
+  // DELET DATA
+  const deleteStudets = (student_id, lastname, firstname) => {
+    // fetch data
+    const database = getFirestore(firebaseApp);
+
+    const userConfirmed = window.confirm(
+      `Are you sure want to delete ${lastname}, ${firstname} data?`
+    );
+
+    if (userConfirmed) {
+      deleteDoc(doc(database, "data", student_id));
+    }
+  };
+
   return (
     <section className="container mt-5">
       <h1 className="display-4 fw-bold m-5 text-center">Data Records</h1>
@@ -66,7 +82,16 @@ function Data() {
                     <button className="btn btn-success btn-sm ">Update</button>
 
                     {/* delete button */}
-                    <button className="btn btn-danger btn-sm ms-2">
+                    <button
+                      className="btn btn-danger btn-sm ms-2"
+                      onClick={() => {
+                        deleteStudets(
+                          student.student_id,
+                          student.lastname,
+                          student.firstname
+                        );
+                      }}
+                    >
                       Delete
                     </button>
                   </td>
