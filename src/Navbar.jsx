@@ -4,7 +4,9 @@ function Navbar() {
   return (
     <nav className="navbar navbar-expand-lg bg-body-tertiary">
       <div className="container-fluid">
-        <Link to="/" className="navbar-brand"></Link>
+        <Link to="/" className="navbar-brand">
+          Navbar
+        </Link>
 
         <button
           className="navbar-toggler"
@@ -19,7 +21,7 @@ function Navbar() {
         </button>
 
         <div className="collapse navbar-collapse" id="navbarNav">
-          <ul className="navbar-nav">
+          <ul className="navbar-nav ms-auto">
             <li className="nav-item">
               <NavLink to="/" className="nav-link">
                 Dashboard
@@ -27,20 +29,14 @@ function Navbar() {
             </li>
 
             <li className="nav-item">
-              <NavLink to="data" className="nav-link">
-                Data
+              <NavLink to="about" className="nav-link">
+                About
               </NavLink>
             </li>
 
             <li className="nav-item">
-              <NavLink to="input" className="nav-link">
-                Input Data
-              </NavLink>
-            </li>
-
-            <li className="nav-item">
-              <NavLink to="#" className="nav-link">
-                ---
+              <NavLink to="logout" className="nav-link">
+                Log out
               </NavLink>
             </li>
           </ul>
