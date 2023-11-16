@@ -8,13 +8,16 @@ import {
   addDoc,
   deleteDoc,
   doc,
+  query,
+  orderBy,
+  updateDoc,
 } from "firebase/firestore";
 
 function Dashboard() {
   // studentList state
   const [studentList, setStudentList] = useState([]);
 
-  // student state
+  // student object state
   const [student, setStudent] = useState({
     lastname: "",
     firstname: "",
@@ -34,9 +37,8 @@ function Dashboard() {
     setInputModalVisible(false);
   };
 
-  // data modal state
-  const [dataModalVisible, setDataModalVisible] = useState(false);
-  const [selectedStudent, setSelectedStudent] = useState(null);
+  const [dataModalVisible, setDataModalVisible] = useState(false); // data modal state
+  const [selectedStudent, setSelectedStudent] = useState(null); // selected student state for thres var props
 
   // show data modal function
   const showDataModal = (student) => {
@@ -50,24 +52,44 @@ function Dashboard() {
     setDataModalVisible(false);
   };
 
+  // edit modal state
+  const [editModalVisible, setEditModalVisible] = useState(false);
+
+  // show edit modal function
+  const showEditModal = (student) => {
+    setSelectedStudent(student);
+    setEditModalVisible(true);
+  };
+
+  // hide edit modal function
+  const hideEditModal = () => {
+    setSelectedStudent(null);
+    setEditModalVisible(false);
+  };
+
   // FETCH DATA
   useEffect(() => {
     // init congif
     const database = getFirestore(firebaseApp);
 
     try {
-      onSnapshot(collection(database, "data"), (snapshot) => {
-        const snapList = []; // snaplist var
+      // get data orderby asc from db
+      onSnapshot(
+        query(collection(database, "data"), orderBy("lastname", "asc")),
+        (snapshot) => {
+          const snapList = []; // snaplist var
 
-        // get data from db
-        snapshot.forEach((studentData) => {
-          const getStudentData = studentData.data(); // student getter data var
-          getStudentData["student_id"] = studentData.id; // set student getter array data as data id from db
-          snapList.push(getStudentData); // push data to to snaplist
-        });
+          // get each data
+          snapshot.forEach((studentData) => {
+            const getStudentData = studentData.data(); // student getter data var
+            getStudentData["student_id"] = studentData.id; // set student getter array data as data id from db
+            snapList.push(getStudentData); // push data to snaplist
+          });
 
-        setStudentList(snapList);
-      });
+          // set snapList to studentList
+          setStudentList(snapList);
+        }
+      );
     } catch (error) {
       alert("Can't fetch data!"); // error msg
     }
@@ -78,6 +100,7 @@ function Dashboard() {
     // init config
     const database = getFirestore(firebaseApp);
 
+    // object input config
     if (
       student.lastname === "" ||
       student.firstname === "" ||
@@ -105,14 +128,42 @@ function Dashboard() {
     //init config
     const database = getFirestore(firebaseApp);
 
-    // confirmation
+    // confirmation popup
     const userConfirmed = window.confirm(
       `Are you sure you want to delete ${lastname}, ${firstname} data?`
     );
 
     // confirmation delete
     if (userConfirmed) {
-      deleteDoc(doc(database, "data", student_id));
+      deleteDoc(doc(database, "data", student_id)); // delete data from db
+    }
+  };
+
+  // EDIT DATA
+  const editStudent = async () => {
+    // init config
+    const database = getFirestore(firebaseApp);
+
+    try {
+      // update data in db
+      const studentRef = doc(database, "data", selectedStudent.student_id);
+
+      const updatedStudentData = {
+        lastname: selectedStudent.lastname,
+        firstname: selectedStudent.firstname,
+        yearlevel: selectedStudent.yearlevel,
+      };
+
+      updateDoc(studentRef, {
+        lastname: selectedStudent.lastname,
+        firstname: selectedStudent.firstname,
+        yearlevel: selectedStudent.yearlevel,
+      });
+      hideEditModal();
+      hideDataModal();
+      showDataModal(updatedStudentData);
+    } catch (error) {
+      alert("Can't update data!"); // error msg
     }
   };
 
@@ -126,7 +177,7 @@ function Dashboard() {
           Add Student +
         </button>
 
-        {/* Input Data Modal */}
+        {/* Add Student Data Modal */}
         {InputModalVisible && (
           <div
             className="modal"
@@ -226,7 +277,7 @@ function Dashboard() {
         )}
       </section>
 
-      {/* Data Modal */}
+      {/* Student Data Modal */}
       {dataModalVisible && (
         <div
           className="modal"
@@ -264,6 +315,7 @@ function Dashboard() {
               </div>
 
               <div className="modal-footer d-flex justify-content-center">
+                {/* delete btn */}
                 <button
                   className="btn btn-danger"
                   onClick={() => {
@@ -277,7 +329,111 @@ function Dashboard() {
                 >
                   Delete
                 </button>
-                <button className="btn btn-success">Edit</button>
+                {/* edit */}
+                <button
+                  className="btn btn-success"
+                  onClick={() => showEditModal(selectedStudent)}
+                >
+                  Edit
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Data Modal */}
+      {editModalVisible && (
+        <div
+          className="modal"
+          tabIndex="-1"
+          role="dialog"
+          style={{ display: "block" }}
+        >
+          <div className="modal-dialog" role="document">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h1 className="modal-title d-flex justify-content-center">
+                  Edit Student
+                </h1>
+                {/* close modal button */}
+                <button
+                  type="button"
+                  className="btn btn-danger close rounded"
+                  onClick={hideEditModal}
+                  aria-label="Close"
+                >
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+
+              {/* Edit Data Form  */}
+              <div className="modal-body">
+                <section className="form-floating mb-3">
+                  {/* last name input */}
+                  <input
+                    type="text"
+                    className="form-control"
+                    id="lastname"
+                    placeholder="Last Name"
+                    value={selectedStudent.lastname}
+                    onChange={(e) => {
+                      setSelectedStudent({
+                        ...selectedStudent,
+                        lastname: e.target.value,
+                      });
+                    }}
+                  />
+                  <label htmlFor="lastname">Last Name</label>
+                </section>
+
+                <section className="form-floating mb-3">
+                  {/* first name input */}
+                  <input
+                    type="text"
+                    className="form-control"
+                    id="firstname"
+                    placeholder="First Name"
+                    value={selectedStudent.firstname}
+                    onChange={(e) => {
+                      setSelectedStudent({
+                        ...selectedStudent,
+                        firstname: e.target.value,
+                      });
+                    }}
+                  />
+                  <label htmlFor="firstname">First Name</label>
+                </section>
+
+                <section className="form-floating mb-3">
+                  {/* yearlevel input */}
+                  <input
+                    type="text"
+                    className="form-control"
+                    id="yearlevel"
+                    placeholder="Year Level"
+                    value={selectedStudent.yearlevel}
+                    onChange={(e) => {
+                      setSelectedStudent({
+                        ...selectedStudent,
+                        yearlevel: e.target.value,
+                      });
+                    }}
+                  />
+                  <label htmlFor="yearlevel">Year Level</label>
+                </section>
+              </div>
+
+              <div className="modal-footer d-flex justify-content-center">
+                {/* confirm edit btn */}
+                <button
+                  className="btn btn-success"
+                  onClick={() => {
+                    editStudent();
+                  }}
+                >
+                  Confirm
+                </button>
               </div>
             </div>
           </div>
@@ -299,11 +455,13 @@ function Dashboard() {
 
             {/* table data */}
             <tbody>
+              {/* map data to display */}
               {studentList.map((student) => (
                 <tr key={student.student_id}>
                   <td>{student.lastname}</td>
                   <td>{student.firstname}</td>
                   <td className="text-center">
+                    {/* show data button */}
                     <button
                       className="btn btn-success"
                       onClick={() => showDataModal(student)}
