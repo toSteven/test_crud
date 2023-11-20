@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
 import firebaseApp from "./Config";
 import { useState } from "react";
@@ -7,6 +7,7 @@ function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const navigate = useNavigate(); // Use useNavigate instead of useHistory
 
   const handleRegister = () => {
     if (
@@ -21,7 +22,7 @@ function Register() {
           // User registered successfully
           const user = userCredential.user;
           alert("Registration successful");
-          // Redirect or perform other actions on successful registration
+          navigate("/login");
           // ...
         })
         .catch((error) => {

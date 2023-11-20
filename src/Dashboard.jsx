@@ -67,6 +67,15 @@ function Dashboard() {
     setEditModalVisible(false);
   };
 
+  // search bar state
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // filter students
+  const filteredStudentList = studentList.filter((student) => {
+    const fullName = `${student.lastname} ${student.firstname}`.toLowerCase();
+    return fullName.includes(searchQuery.toLowerCase());
+  });
+
   // FETCH DATA
   useEffect(() => {
     // init congif
@@ -176,6 +185,15 @@ function Dashboard() {
         <button className="btn btn-dark mb-3" onClick={InputshowModal}>
           Add Student +
         </button>
+
+        {/* search bar */}
+        <input
+          type="text"
+          className="form-control mb-3"
+          placeholder="Search students..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
 
         {/* Add Student Data Modal */}
         {InputModalVisible && (
@@ -456,7 +474,7 @@ function Dashboard() {
             {/* table data */}
             <tbody>
               {/* map data to display */}
-              {studentList.map((student) => (
+              {filteredStudentList.map((student) => (
                 <tr key={student.student_id}>
                   <td>{student.lastname}</td>
                   <td>{student.firstname}</td>
