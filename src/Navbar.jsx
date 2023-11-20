@@ -2,7 +2,7 @@ import { Link, NavLink } from "react-router-dom";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import firebaseApp from "./Config";
 
-function Navbar({ logout }) {
+function Navbar({ auth, logout }) {
   return (
     <nav className="navbar navbar-expand-lg bg-body-tertiary">
       <div className="container-fluid">
@@ -35,18 +35,38 @@ function Navbar({ logout }) {
                 About
               </NavLink>
             </li>
+            {/* if login show */}
 
-            <li className="nav-item">
-              <NavLink to="register" className="nav-link">
-                Register
-              </NavLink>
-            </li>
+            {auth ? null : (
+              <li className="nav-item">
+                <NavLink to="register" className="nav-link">
+                  Register
+                </NavLink>
+              </li>
+            )}
+            {/* if login show */}
+            {auth ? null : (
+              <li className="nav-item">
+                <NavLink to="login" className="nav-link">
+                  Login
+                </NavLink>
+              </li>
+            )}
 
-            <li className="nav-item">
-              <NavLink to="login" className="nav-link">
-                Login
-              </NavLink>
-            </li>
+            {/* if logout show */}
+            {auth ? (
+              <li className="nav-item">
+                <NavLink
+                  to="/"
+                  className="nav-link"
+                  onClick={() => {
+                    logout();
+                  }}
+                >
+                  Signout
+                </NavLink>
+              </li>
+            ) : null}
           </ul>
         </div>
       </div>

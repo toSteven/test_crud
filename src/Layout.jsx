@@ -23,9 +23,20 @@ function Layout() {
     });
   }, []);
 
+  // logout
+  const logout = () => {
+    const auth = getAuth(firebaseApp);
+    signOut(auth)
+      .then(() => {
+        alert("You have logout!");
+        setCredentials(false);
+      })
+      .catch((error) => {});
+  };
+
   return (
     <main>
-      <Navbar />
+      <Navbar auth={credentials} logout={logout} />
       <section className="container">
         <Outlet />
       </section>
