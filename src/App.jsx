@@ -8,6 +8,9 @@ import Layout from "./Layout";
 import Dashboard from "./Dashboard";
 import About from "./About";
 import Logout from "./Logout.";
+import NotFound404 from "./NotFound404";
+import LogIn from "./LogIn";
+import Register from "./Register";
 
 function App() {
   return (
@@ -18,8 +21,10 @@ function App() {
             <Route index element={<Dashboard />}></Route>
             <Route path="/" element={<Dashboard />}></Route>
             <Route path="about" element={<About />}></Route>
-            <Route path="logout" element={<Logout />}></Route>
+            <Route path="register" element={<Register />}></Route>
+            <Route path="login" element={<LogIn />}></Route>
           </Route>
+          <Route path="*" element={<NotFound404 />}></Route>
         </Routes>
       </BrowserRouter>
     </main>
