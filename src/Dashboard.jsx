@@ -12,6 +12,7 @@ import {
   orderBy,
   updateDoc,
 } from "firebase/firestore";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 
 function Dashboard() {
   // studentList state
@@ -65,6 +66,7 @@ function Dashboard() {
   const hideEditModal = () => {
     setSelectedStudent(null);
     setEditModalVisible(false);
+    showDataModal(selectedStudent);
   };
 
   // search bar state
@@ -75,6 +77,9 @@ function Dashboard() {
     const fullName = `${student.lastname} ${student.firstname}`.toLowerCase();
     return fullName.includes(searchQuery.toLowerCase());
   });
+
+  // auth state
+  const [credentials, setCredentials] = useState(false);
 
   // FETCH DATA
   useEffect(() => {
@@ -102,6 +107,19 @@ function Dashboard() {
     } catch (error) {
       alert("Can't fetch data!"); // error msg
     }
+
+    // auth
+    const auth = getAuth(firebaseApp);
+
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setCredentials(true);
+        const uid = user.uid;
+      } else {
+        setCredentials(false);
+        // user is signout
+      }
+    });
   }, []);
 
   // INPUT DATA
@@ -163,40 +181,207 @@ function Dashboard() {
         yearlevel: selectedStudent.yearlevel,
       };
 
-      updateDoc(studentRef, {
+      updateDoc(updatedStudentData, {
         lastname: selectedStudent.lastname,
         firstname: selectedStudent.firstname,
         yearlevel: selectedStudent.yearlevel,
       });
+      alert("Updated");
       hideEditModal();
       hideDataModal();
       showDataModal(updatedStudentData);
     } catch (error) {
-      alert("Can't update data!"); // error msg
+      alert("Failed to update!"); // error msg
     }
   };
 
-  return (
-    <main className="container mt-5">
-      <h1 className="display-4 fw-bold m-5 text-center">Data Records</h1>
+  if (credentials) {
+    return (
+      <main className="container mt-5">
+        <h1 className="display-4 fw-bold m-5 text-center">Data Records</h1>
 
-      {/* Input Form Button */}
-      <section>
-        <button className="btn btn-dark mb-3" onClick={InputshowModal}>
-          Add Student +
-        </button>
+        {/* Input Form Button */}
+        <section>
+          <button className="btn btn-dark mb-3" onClick={InputshowModal}>
+            Add Student +
+          </button>
 
-        {/* search bar */}
-        <input
-          type="text"
-          className="form-control mb-3"
-          placeholder="Search students..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-        />
+          {/* search bar */}
+          <input
+            type="text"
+            className="form-control mb-3"
+            placeholder="Search students..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
 
-        {/* Add Student Data Modal */}
-        {InputModalVisible && (
+          {/* Add Student Data Modal */}
+          {InputModalVisible && (
+            <div
+              className="modal"
+              tabIndex="-1"
+              role="dialog"
+              style={{ display: "block" }}
+            >
+              <div className="modal-dialog" role="document">
+                <div className="modal-content">
+                  <div className="modal-header">
+                    <h1 className="modal-title d-flex justify-content-center">
+                      Add Student
+                    </h1>
+                    {/* close modal button */}
+                    <button
+                      type="button"
+                      className="btn btn-danger close rounded"
+                      onClick={InputhideModal}
+                      aria-label="Close"
+                    >
+                      <span aria-hidden="true">&times;</span>
+                    </button>
+                  </div>
+
+                  {/* Input Data Form  */}
+                  <div className="modal-body">
+                    <section className="form-floating mb-3">
+                      {/* last name input */}
+                      <input
+                        type="text"
+                        className="form-control"
+                        id="lastname"
+                        placeholder="Last Name"
+                        value={student.lastname}
+                        onChange={(e) => {
+                          setStudent({
+                            ...student,
+                            lastname: e.target.value,
+                          });
+                        }}
+                      />
+                      <label htmlFor="lastname">Last Name</label>
+                    </section>
+
+                    <section className="form-floating mb-3">
+                      {/* first name input */}
+                      <input
+                        type="text"
+                        className="form-control"
+                        id="firstname"
+                        placeholder="First Name"
+                        value={student.firstname}
+                        onChange={(e) => {
+                          setStudent({
+                            ...student,
+                            firstname: e.target.value,
+                          });
+                        }}
+                      />
+                      <label htmlFor="firstname">Fist Name</label>
+                    </section>
+
+                    <section className="form-floating mb-3">
+                      {/* yearlevel input */}
+                      <input
+                        type="text"
+                        className="form-control"
+                        id="yearlevel"
+                        placeholder="Year Level"
+                        value={student.yearlevel}
+                        onChange={(e) => {
+                          setStudent({
+                            ...student,
+                            yearlevel: e.target.value,
+                          });
+                        }}
+                      />
+                      <label htmlFor="yearlevel">Year Level</label>
+                    </section>
+                  </div>
+
+                  <div className="modal-footer d-flex justify-content-center">
+                    {/* submmit button */}
+                    <button
+                      className="btn btn-success"
+                      onClick={() => {
+                        addStudent();
+                        InputhideModal();
+                      }}
+                    >
+                      Confirm
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </section>
+
+        {/* Student Data Modal */}
+        {dataModalVisible && (
+          <div
+            className="modal"
+            tabIndex="-1"
+            role="dialog"
+            style={{ display: "block" }}
+          >
+            <div className="modal-dialog mt-5" role="document">
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h1 className="modal-title d-flex justify-content-center">
+                    Student Data
+                  </h1>
+                  {/* close modal button */}
+                  <button
+                    type="button"
+                    className="btn btn-danger close rounded"
+                    onClick={hideDataModal}
+                    aria-label="Close"
+                  >
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+
+                {/* Display Data Form */}
+                <div className="modal-body">
+                  {/* Render the data from selectedStudent */}
+                  {selectedStudent && (
+                    <section>
+                      <h1>Last Name: {selectedStudent.lastname}</h1>
+                      <h1>First Name: {selectedStudent.firstname}</h1>
+                      <h1>Year Level: {selectedStudent.yearlevel}</h1>
+                    </section>
+                  )}
+                </div>
+
+                <div className="modal-footer d-flex justify-content-center">
+                  {/* delete btn */}
+                  <button
+                    className="btn btn-danger"
+                    onClick={() => {
+                      deleteStudent(
+                        selectedStudent.student_id,
+                        selectedStudent.lastname,
+                        selectedStudent.firstname
+                      );
+                      hideDataModal();
+                    }}
+                  >
+                    Delete
+                  </button>
+                  {/* edit */}
+                  <button
+                    className="btn btn-success"
+                    onClick={() => showEditModal(selectedStudent)}
+                  >
+                    Edit
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Edit Data Modal */}
+        {editModalVisible && (
           <div
             className="modal"
             tabIndex="-1"
@@ -207,20 +392,20 @@ function Dashboard() {
               <div className="modal-content">
                 <div className="modal-header">
                   <h1 className="modal-title d-flex justify-content-center">
-                    Add Student
+                    Edit Student
                   </h1>
                   {/* close modal button */}
                   <button
                     type="button"
                     className="btn btn-danger close rounded"
-                    onClick={InputhideModal}
+                    onClick={hideEditModal}
                     aria-label="Close"
                   >
                     <span aria-hidden="true">&times;</span>
                   </button>
                 </div>
 
-                {/* Input Data Form  */}
+                {/* Edit Data Form  */}
                 <div className="modal-body">
                   <section className="form-floating mb-3">
                     {/* last name input */}
@@ -229,10 +414,10 @@ function Dashboard() {
                       className="form-control"
                       id="lastname"
                       placeholder="Last Name"
-                      value={student.lastname}
+                      value={selectedStudent.lastname}
                       onChange={(e) => {
-                        setStudent({
-                          ...student,
+                        setSelectedStudent({
+                          ...selectedStudent,
                           lastname: e.target.value,
                         });
                       }}
@@ -247,15 +432,15 @@ function Dashboard() {
                       className="form-control"
                       id="firstname"
                       placeholder="First Name"
-                      value={student.firstname}
+                      value={selectedStudent.firstname}
                       onChange={(e) => {
-                        setStudent({
-                          ...student,
+                        setSelectedStudent({
+                          ...selectedStudent,
                           firstname: e.target.value,
                         });
                       }}
                     />
-                    <label htmlFor="firstname">Fist Name</label>
+                    <label htmlFor="firstname">First Name</label>
                   </section>
 
                   <section className="form-floating mb-3">
@@ -265,10 +450,10 @@ function Dashboard() {
                       className="form-control"
                       id="yearlevel"
                       placeholder="Year Level"
-                      value={student.yearlevel}
+                      value={selectedStudent.yearlevel}
                       onChange={(e) => {
-                        setStudent({
-                          ...student,
+                        setSelectedStudent({
+                          ...selectedStudent,
                           yearlevel: e.target.value,
                         });
                       }}
@@ -278,12 +463,11 @@ function Dashboard() {
                 </div>
 
                 <div className="modal-footer d-flex justify-content-center">
-                  {/* submmit button */}
+                  {/* confirm edit btn */}
                   <button
                     className="btn btn-success"
                     onClick={() => {
-                      addStudent();
-                      InputhideModal();
+                      editStudent();
                     }}
                   >
                     Confirm
@@ -293,208 +477,47 @@ function Dashboard() {
             </div>
           </div>
         )}
-      </section>
 
-      {/* Student Data Modal */}
-      {dataModalVisible && (
-        <div
-          className="modal"
-          tabIndex="-1"
-          role="dialog"
-          style={{ display: "block" }}
-        >
-          <div className="modal-dialog mt-5" role="document">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h1 className="modal-title d-flex justify-content-center">
-                  Student Data
-                </h1>
-                {/* close modal button */}
-                <button
-                  type="button"
-                  className="btn btn-danger close rounded"
-                  onClick={hideDataModal}
-                  aria-label="Close"
-                >
-                  <span aria-hidden="true">&times;</span>
-                </button>
-              </div>
-
-              {/* Display Data Form */}
-              <div className="modal-body">
-                {/* Render the data from selectedStudent */}
-                {selectedStudent && (
-                  <section>
-                    <h1>Last Name: {selectedStudent.lastname}</h1>
-                    <h1>First Name: {selectedStudent.firstname}</h1>
-                    <h1>Year Level: {selectedStudent.yearlevel}</h1>
-                  </section>
-                )}
-              </div>
-
-              <div className="modal-footer d-flex justify-content-center">
-                {/* delete btn */}
-                <button
-                  className="btn btn-danger"
-                  onClick={() => {
-                    deleteStudent(
-                      selectedStudent.student_id,
-                      selectedStudent.lastname,
-                      selectedStudent.firstname
-                    );
-                    hideDataModal();
-                  }}
-                >
-                  Delete
-                </button>
-                {/* edit */}
-                <button
-                  className="btn btn-success"
-                  onClick={() => showEditModal(selectedStudent)}
-                >
-                  Edit
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Edit Data Modal */}
-      {editModalVisible && (
-        <div
-          className="modal"
-          tabIndex="-1"
-          role="dialog"
-          style={{ display: "block" }}
-        >
-          <div className="modal-dialog" role="document">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h1 className="modal-title d-flex justify-content-center">
-                  Edit Student
-                </h1>
-                {/* close modal button */}
-                <button
-                  type="button"
-                  className="btn btn-danger close rounded"
-                  onClick={hideEditModal}
-                  aria-label="Close"
-                >
-                  <span aria-hidden="true">&times;</span>
-                </button>
-              </div>
-
-              {/* Edit Data Form  */}
-              <div className="modal-body">
-                <section className="form-floating mb-3">
-                  {/* last name input */}
-                  <input
-                    type="text"
-                    className="form-control"
-                    id="lastname"
-                    placeholder="Last Name"
-                    value={selectedStudent.lastname}
-                    onChange={(e) => {
-                      setSelectedStudent({
-                        ...selectedStudent,
-                        lastname: e.target.value,
-                      });
-                    }}
-                  />
-                  <label htmlFor="lastname">Last Name</label>
-                </section>
-
-                <section className="form-floating mb-3">
-                  {/* first name input */}
-                  <input
-                    type="text"
-                    className="form-control"
-                    id="firstname"
-                    placeholder="First Name"
-                    value={selectedStudent.firstname}
-                    onChange={(e) => {
-                      setSelectedStudent({
-                        ...selectedStudent,
-                        firstname: e.target.value,
-                      });
-                    }}
-                  />
-                  <label htmlFor="firstname">First Name</label>
-                </section>
-
-                <section className="form-floating mb-3">
-                  {/* yearlevel input */}
-                  <input
-                    type="text"
-                    className="form-control"
-                    id="yearlevel"
-                    placeholder="Year Level"
-                    value={selectedStudent.yearlevel}
-                    onChange={(e) => {
-                      setSelectedStudent({
-                        ...selectedStudent,
-                        yearlevel: e.target.value,
-                      });
-                    }}
-                  />
-                  <label htmlFor="yearlevel">Year Level</label>
-                </section>
-              </div>
-
-              <div className="modal-footer d-flex justify-content-center">
-                {/* confirm edit btn */}
-                <button
-                  className="btn btn-success"
-                  onClick={() => {
-                    editStudent();
-                  }}
-                >
-                  Confirm
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Display Data Form */}
-      <section className="card mt-3">
-        <div className="card-body">
-          <table className="table">
-            {/* table header */}
-            <thead>
-              <tr>
-                <th>Last Name</th>
-                <th>First Name</th>
-                <th className="text-center">Action</th>
-              </tr>
-            </thead>
-
-            {/* table data */}
-            <tbody>
-              {/* map data to display */}
-              {filteredStudentList.map((student) => (
-                <tr key={student.student_id}>
-                  <td>{student.lastname}</td>
-                  <td>{student.firstname}</td>
-                  <td className="text-center">
-                    {/* show data button */}
-                    <button
-                      className="btn btn-success"
-                      onClick={() => showDataModal(student)}
-                    >
-                      Show Data
-                    </button>
-                  </td>
+        {/* Display Data Form */}
+        <section className="card mt-3">
+          <div className="card-body">
+            <table className="table">
+              {/* table header */}
+              <thead>
+                <tr>
+                  <th>Last Name</th>
+                  <th>First Name</th>
+                  <th className="text-center">Action</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
-    </main>
-  );
+              </thead>
+
+              {/* table data */}
+              <tbody>
+                {/* map data to display */}
+                {filteredStudentList.map((student) => (
+                  <tr key={student.student_id}>
+                    <td>{student.lastname}</td>
+                    <td>{student.firstname}</td>
+                    <td className="text-center">
+                      {/* show data button */}
+                      <button
+                        className="btn btn-success"
+                        onClick={() => showDataModal(student)}
+                      >
+                        Show Data
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+    );
+  } else {
+    return <section>Sign in to see data records.</section>;
+  }
 }
 
 export default Dashboard;

@@ -1,6 +1,8 @@
 import { Link, NavLink } from "react-router-dom";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
+import firebaseApp from "./Config";
 
-function Navbar() {
+function Navbar({ logout }) {
   return (
     <nav className="navbar navbar-expand-lg bg-body-tertiary">
       <div className="container-fluid">
